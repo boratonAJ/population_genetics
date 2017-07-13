@@ -1,0 +1,1814 @@
+---
+title: "An introduction to R"
+author: "Jerome Goudet"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, 
+                      eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+\newpage
+
+# Practical 1. A first R tutorial: win the lottery
+
+## Prerequisites
+
+What you must have installed:  Rstudio @ http://www.rstudio.com/ 
+
+## Introduction
+
+
+### Documentation and setting things up
+
+What is R:  http://stat.ethz.ch/CRAN/doc/FAQ/R-FAQ.html
+
+R editors: 
+
+Why an editor?  syntax highliting, plus avoid re-typing commands...
+
+
+1. For All systems: integrated environment **RStudio** ( http://www.rstudio.com/ ) **Highly recommended** (i.e., install it if not done yet and use it for this course).  We will use R markdown ( http://rmarkdown.rstudio.com/ ) to write notes and produce documents. [A short video about RStudio](http://player.vimeo.com/video/97166163?api=1&player_id=player_1) 
+
+2. For windows:  Tinn-R, Notepad++ 
+3. For linux: ess (emacs speaks statistics) distributed as an R package, Vim,...
+4. For Mac: Textmate or the online editor
+5. a more extensive list: http://www.sciviews.org/_rgui/projects/Editors.html
+
+
+### Installing and enhancing R  
+
+1. Binaries for windows, macOs X, several brends of linux and source code available from  http://stat.ethz.ch/CRAN
+2. extra packages to extend R: from the same URL. Currently (Thursday May 28th, 2015), the CRAN package repository features 6692 available packages
+3. Also many packages available from github (development version)
+4. R Home page for further information etc... (bookmark this link!) http://www.r-project.org/
+5. Search Engine specific for R: http://www.rseek.org/
+6. Much on CRAN in forms of tutorial, FAQ, etc...
+7. Books:   a lot available from http://www.r-project.org/doc/bib/R-books.html
+
+***
+## Questions/Tutorial
+
+One of the best ways to getting acquainted with R is to use it to help you to
+understand a particular set of data. So let us consider data issued from a lottery, where
+you might be motivated to perform data analysis. The readers are invited to work through
+the following familiarization session and see what happens. First-time users may not yet
+understand every detail, but **the best plan is to type what you see and observe what happens as a result**.
+
+This chapter is mainly based on Becker, [Chambers and Wilks's book](http://www.amazon.com/New-Language-R-A-Becker/dp/0534091938) (1988, The New S Language, Chapter 1).
+
+The specific data we will look at concerns the New Jersey Pick-It Lottery. Our data is
+for 254 drawings just after the lottery was started, from May, 1975 to March, 1976. Pick-
+It is a parimutuel game, meaning that the winners share a fraction of the money taken
+in for the particular drawing. Each ticket cost fifty cents and at the time of purchase the
+player picks a three-digit number ranging from 000 to 999. The money bet during the
+day is placed in a prize pool and anyone who picked the winning number shares equally
+in the pool. The data is in the file lottery.txt 
+
+
+
+It can be loaded in R using the following command:
+
+```{r}
+data<-read.table("http://www2.unil.ch/popgen/teaching/R11/lotery.txt",header=TRUE)
+```
+```{r,eval=FALSE}
+data #print the dataset on screen
+```
+
+```{r}
+#If you want to see only the first few lines:
+head(data)
+```
+
+The data available gives for each drawing the winning number and the payoff for a
+winning ticket. The winning numbers and the corresponding payoffs are:
+
+```{r}
+data$number # print the winning numbers
+data$payoffs # print the payoffs
+```
+
+From these instructions we notice that, for the first drawing, the winning
+number was 810 and it paid \$190.00 to each winning ticket holder. In what follows we
+will try to examine the data. Numerical summaries provide a statistical synopsis of the
+data in a tabular format. Such a function is summary. The following displays a summary
+of the lottery payoffs:
+
+```{r}
+summary(data$payoffs)
+```
+We read from this that the mean payoff was \$290.4, that the payoffs ranged from \$83 to
+\$869.5 and that 50% of all payoffs lay between \$194.2 and \$364. The quantiles for a set
+of data x can also be computed by means of quantile(x, quantiles). For example,
+
+```{r}
+quantile(data$payoffs, c(.25, .75))
+```
+
+This means that 25% of the values are less than 194, and 75% of the payoffs are less than 365.
+A better way to understand the data is to look at it graphically. With **RStudio**, a graphical window is already open, but if you are using classical *R* and want a new one, under windows, just type:
+
+```
+windows()
+```
+A separate window should appear on your screen. If you have a mac, type:
+
+```
+quartz()
+```
+
+or Unix/linux:
+
+```
+X11()
+```
+
+In our data, to detect long-term irregularities we will look at the winning numbers to
+see if they appear to be chosen at random. To do so we could produce a histogram of the
+lottery numbers:
+
+```{r}
+hist(data$number)
+```
+
+The histogram should show on your screen. Since there are 10 bars, the count should be
+approximately 25.
+It looks fairly flat, no need to inform a jury.
+Of course, most of our attention will probably be directed at the payoffs. Elementary
+probabilistic reasoning tells us that a single number we pick has a 1 in 1000 chance of
+winning. If we play many times, we expect about 1 winning number per 1000 plays. Since
+a ticket costs fifty cents, 1000 plays will cost <$500, so we hope to win at least \$500 each
+time we win, otherwise we will lose money in the long run. So, let us make a histogram
+of the payoffs.
+
+```{r}
+hist(data$payoffs)
+```
+
+The figure shows that payoffs range from less than \$100 to more than \$800, although the
+bulk of the payoffs are between \$100 and \$400, i.e. there were a number of payoffs larger
+than \$500. Perhaps we have a chance. The widely varying payoffs are primarily due to
+the pari mutuel betting in the lottery: if you win when few others win, you will get a large
+payoff. If you are unlucky enough to win along with others, the payoff may be relatively
+small.
+
+Let us see what the largest and the smallest payoffs and corresponding winning numbers
+were:
+
+```{r}
+max(data$payoffs) # the largest payoff
+data$number[data$payoffs==max(data$payoffs)]
+min(data$payoffs) # the smallest payoff
+data$number[data$payoffs==min(data$payoffs)]
+```
+
+Winners who bet on '123' must have been disappointed; \$83 is not a very large payoff.
+On the other hand \$869.50 is very nice. Since the winning numbers and the payoffs
+come in pairs, a number and a payoff for each drawing, we can produce a scatterplot of
+the data to see if there is any relationship between the payoff and the winning number.
+R provides a generic plotting function, plot, which produces different kinds of plots
+depending on the data passed to it. In its most common use, it produces a scatterplot of
+two numeric objects:
+
+```{r}
+plot(data$number, data$payoffs)
+```
+
+What do you see in the graph? Does the payoff seem to depend on the position of
+the winning number? Perhaps it would help to add a `middle' line that follows the overall
+pattern of the data:
+
+```{r}
+plot(data$number, data$payoffs)
+lines(lowess(data$number, data$payoffs, f=.2))
+```
+
+This command superimposes a smooth curve on the winning number and payoff scatterplot.
+Can you see the interesting characteristics now?
+
+There are substantially higher payoffs for numbers with a leading zero, meaning fewer
+people bet on these numbers. Perhaps that reflects people's reluctance to think of numbers
+with leading zeros. After all, no one writes \$010 on a ten dollar check! Also note
+that, expect for the numbers with leading zeros, payoffs seem to increase as the winning number increases. 
+
+
+It would be interesting to see exactly what numbers correspond to the
+large payoffs. Fortunately, with an interactive graphical input device, we can do that by
+simply pointing at the `outliers':
+
+```{r}
+plot(data$number, data$payoffs)
+lines(lowess(data$number, data$payoffs, f=.2))
+identify(data$number, data$payoffs, data$number) #might not work on all platforms
+```
+
+To identify a payoff with its corresponding winning number just click on a point using the
+left mouse button. Once you have pointed out the 'outliers' just type the escape key. Can you see the pattern in the numbers with very high payoffs?
+
+As a little help it is to say that the lottery has a mode of betting, called 'combination bets' where players win if the digits in their number appear in any order (Ticket 123
+would win on 321, 231). The pattern in the numbers is that most of the numbers with
+high payoffs have duplicate digits. This results from the fact that payoffs for the numbers
+with duplicate digits are not shared with combination betters, and thus are higher.
+
+
+Another method to look out for 'outliers' is to make a boxplot of the data. We noticed
+before that the payoffs seem to depend on the first digit of the winning number.
+So it would be interesting to draw boxes for the ten subsets of payoffs in a single plot to
+study this phenomenon graphically. Rather than extracting each set separately, we use
+the R function split to create a list, where each element of the list gives all of the
+payoffs that correspond to a particular first digit of the winning number. The boxplot
+function will draw a box for each element in the list.
+
+```{r}
+digit<-trunc(data$number/100) # the first digits
+boxplot(split(data$payoffs, digit)) # boxplot of data split by groups
+title(xlab="First Digit of Winning Number", ylab="Payoff")
+abline(h=500) # horizontal line at 500
+```
+
+The box in a boxplot contains the middle half of the data; the whiskers extending from
+the box reach to the most extreme non-outlier; outlying points are plotted individually.
+Notice the high payoffs for the first box. The graphic shows us as well that
+it is rare for a payoff to exceed \$500. So, place your bet if you enjoy gambling. Do not
+expect to win.
+
+-----
+
+\newpage
+
+#Practical 2: Data manipulation in R: vectors, matrices, list et data frames
+ 
+##Introduction 
+ 
+You should be able to answer easily the questions at the bottom after having 
+read and understood the text below. An advice: type the examples in R, 
+it helps!
+The basic objects in R are vectors, tables, lists and "data frames". 
+
+###Vectors 
+
+
+R operates on structured data bearing a name. The simplest structure is a 
+vector, which is a simple entity consisting of an ordered collection 
+of numbers. For instance,
+
+ 
+```{r}
+x.vector<-c(5.1,6.3,7.8,9.3,10.5)
+```
+
+is a vector made up of five numbers. The order above uses the symbol of 
+assignment '<-' and the function 'c' who combines the five values in a 
+vector. Note that the assignment can also be made in the other direction:
+
+
+```{r}
+c(5.1,6.3,7.8,9.3,10.5)->x.vector
+```
+
+
+
+If an expression is used without being assigned to an object, 
+it is printed to the
+screen then is lost. For example the instruction
+
+
+```{r}
+1/x.vector
+```
+
+
+prints the inverse of the fives values, but does not store them.
+
+ 
+
+The vectors can be used in arithmetic expressions, the operations being 
+then carried out on each element of the vector. For instance, 
+look at the result of the 3 instructions below:
+
+```{r}
+x.vector-1
+2*(x.vector-1)
+x.vector^2
+```
+
+
+where '^' stands for power
+
+let's make a second vector:
+
+```{r}
+y.vector<-c(1.3,3.4,8.1,3.6,5.7)
+```
+
+
+with the same length as x.vector. Look at the results of the following 
+instructions:
+
+```{r}
+x.vector+y.vector
+```
+
+
+```{r}
+x.vector*y.vector
+```
+
+
+Note that vectors of different lengths can be used in an operation. 
+In this case, the size of the shortest vector is adjusted by duplicating 
+it until it reaches the size of the longest vector. If the longest 
+vector is not a multiple of the short vector,
+then a warning is emitted:
+
+
+```{r}
+x2<-c(1,1)
+y5<-c(1,2,3,4,5)
+x2+y5
+```
+> Warning message:
+> In x2 + y5 :
+>   longer object length is not a multiple of shorter object length
+
+
+In top of the common operations, you can also used the functions 
+'log', 'log10', 'exp',
+'sin', 'cos', 'tan', 'sqrt' etc... 'range' gives minima 
+and maxima of teh vector or matrix:
+
+```{r}
+range(x.vector)
+c(min(x.vector),max(x.vector))
+```
+
+
+the number of items in a vector can be obtained using 'length':
+
+```{r}
+length(x.vector)
+```
+
+
+thus, the valid indices for the elements of this vector are 
+1:length(vecteur.x)
+(: between 2 numbers is an instruction to generate the sequence of integers 
+between the 2 numbers).
+Elements from a vector can be extracted by specifying the element 
+number between square brackets '[]'.
+For instance, item 3 of x.vector is:
+
+```{r}
+x.vector[3]
+```
+
+
+and the instruction
+
+```{r}
+x.vector[1:3]
+```
+
+
+extract the first 3 elements of the vector. 
+Two useful functions are the sum and
+product of the element of a vector:
+
+```{r}
+sum(x.vector)
+prod(x.vector)
+```
+
+
+Vectors can be made of logical elements:
+
+```{r}
+c(TRUE,FALSE,TRUE,TRUE,FALSE,TRUE)
+c(T,F,T,T,F,T)
+```
+
+
+where T stands for TRUE and F for FALSE. Beware, it is dangerous to use this shortcuts... 
+
+We can also have character strings
+
+```{r}
+c("This","is","my","first","R","course")
+```
+
+
+for a sequence of digits, use ':':
+
+```{r}
+1:10
+```
+
+
+If you want it in steps of 2, type:
+
+```{r}
+2*1:10
+```
+
+
+This works because ':' has higher precedence than "*". To obtain 
+the reverse sequence:
+
+```{r}
+10:1
+```
+
+
+A more general function to obtain a sequence is the function seq (try ?seq):
+
+
+```{r}
+seq(-2*pi,3*pi,pi/4)
+```
+
+
+And another useful function is rep:
+
+```{r}
+rep(1,10)
+rep(1:5,2)
+```
+
+
+Two other useful functions are 'sort' and 'order':
+
+```{r}
+y<-c(3.1,6.3,2.1,4.4,-1.9)
+sort(y)
+order(y)
+#compare next expression with sort(y)
+y[order(y)]
+```
+
+
+### Matrices
+
+Matrices are obtained through the instruction'matrix':
+
+```{r}
+m1<-matrix(1:12,nrow=3)
+m1
+```
+
+
+By default (see ?matrix), matrices are filled in columns. If you want 
+to fill them by rows, use:
+
+```{r}
+m2<-matrix(1:12,nrow=3,byrow=T)
+m2  
+(m2<-matrix(1:12,nrow=3,byrow=T)) # adding () arounds an expression prints it
+```
+
+
+Matrix dimension are obtained using 'dim':
+
+```{r}
+dim(m1)
+```
+
+
+Note that a vector does not have a dimension (although it has a length):
+
+```{r}
+dim(x.vector)
+```
+
+
+You can constrain a vector to become a matrix:
+
+```{r}
+m.x.vector<-as.matrix(x.vector)
+dim(m.x.vector)
+```
+
+
+You can stick matrices together by rows or columns:
+
+```{r}
+rbind(m1,m2)
+cbind(m1,m2)
+```
+
+
+Elements from a matrix are extracted using square brackets:
+
+```{r}
+m1[3,2]
+m1[2,3]
+```
+
+
+We can access to a full line
+```{r}
+m1[2,]
+```
+
+
+or column:
+
+```{r}
+m1[,2]
+```
+
+
+We can also remove a line or a column from a matrix:
+
+```{r}
+m1[-2,]
+m1[,-2]
+```
+
+
+elementwise multiplication of a matrix can be carried out:
+```{r}
+m1*m2
+```
+
+
+And classic matrix product is otained using '%*%':
+
+```{r}
+m1 %*% t(m2)
+t(m1) %*% m2
+```
+
+where 't' stands for transpose (by the way, why don't we take the 
+product m1 %*% m2?).
+
+### Lists
+
+A list in R is an object containing an ordered list of objects, 
+its components.
+Objects in a list do not have to be of the same type. 
+A new list is created using 'list'
+
+
+```{r}
+(my.list<-list("first element"=T, "second element"="Coucou","third"=c(4,3),"fourth"=9.99))
+```
+
+
+To get to a specific element of a liste, double square brackets are used'[[]]':
+
+```{r}
+my.list[[2]]
+```
+
+
+Note that to obtain several elements, we use simple square brackets:
+
+```{r}
+my.list[1:3]
+```
+
+
+Last, it is convenient to call an element in a list by its name rather than 
+its position:, using '$' followed by the fist discriminatory characters of the 
+element's name:
+```{r}
+my.list$fir
+```
+
+
+(here, the first 2 letters would have been sufficient)
+
+```{r}
+my.list$s #second element
+```
+
+
+the names of the elements in a list can be obtained with 'names':
+
+```{r}
+names(my.list)
+```
+
+and the internal structure of a list can be obtained with 'str':
+
+```{r}
+str(my.list)
+```
+
+### Data frames
+
+Data frames can be considered as list of data vectors of the same length, 
+but not
+necessarily of the same type (contrary to matrices).  
+The main idea behind data frames
+is to group data corresponding to an entity of observation in a single 
+structure.
+It's similar in concept to your familiar excel spreadsheet. 
+Elements from a data frame can be accessed in the same way as those 
+of a list or of a matrix:
+
+```{r}
+a<-1:12
+b<-12:1
+cc<-letters[1:12] #why cc rather than c?
+d<-rep(c(TRUE,FALSE),each=6) #careful, T & F are dangerous, use TRUE and FALSE instead
+dataf<-data.frame(A=a,B=b,C=cc,D=d)
+dataf
+dataf[,2]
+dataf$B
+names(dataf)
+str(dataf)
+```
+
+
+square brackets allow selecting part of a data frame.  
+The double equal sign '==' allows
+to select elements equal to a criterion . 
+For instance in data frame dataf to select the
+element of d equal to TRUE:
+
+```{r}
+dataf$D[dataf$D==TRUE]
+```
+
+
+To select the element of A for which D is equal to TRUE::
+
+```{r}
+dataf$A[dataf$D==TRUE]
+```
+
+
+And to select all the columns of the data frame for which D is TRUE:
+
+```{r}
+dataf[dataf$D==TRUE,] #why the comma? 
+```
+
+
+A extremely useful command is read.table, allowing to load a text file 
+in the environment, and to associate it with a data frame. 
+
+If for instance, you want to read the the content
+of file 'myfile.txt' in R, you just need to type the command:
+
+
+```{r,eval=FALSE}
+my.data<-read.table("myfile.txt",header=T)
+my.data
+```
+
+For the command to work of course, the file needs to be in the working 
+directory.
+To set the working directory use the 
+command 'setwd("d:/mydir")" (note the /, not \),
+and to locate the current working directory use 'getwd()'. 
+
+If the file is on the internet, you can just enter the URL. For instance, 
+if your file is at URL:
+
+http://www.unil.ch/popgen/teaching/R11
+
+You can load it with read.table using the full URL of the file:
+
+```{r,eval=FALSE}
+my.data<-read.table("http://www.unil.ch/popgen/teaching/R11/myfile.txt",
+header=T)
+my.data
+```
+
+Sometimes, for very large data sets, 'read.table' is very slow because it will attempt to guess the type of each column.  If the data are all of the same type, you might want to use 'scan' (see `{r} ?scan`) instead of 'read.table'.
+
+Last, saving a data frame as a text file:
+
+```{r,eval=FALSE}
+write.table(my.data,"mydata.txt",row.names=FALSE,quote=FALSE,sep="\t")
+```
+
+
+
+----
+
+## Questions
+
+Answer questions 1 to 10 below:
+
+   0. Why should I avoid calling objects c, T or F? 
+   1. clean your R environment by issuing the instruction rm(list=ls())
+   2. For the following numbers 7.3, 6.8, 0.005, 9, 12, 2.4, 18.9, 0.9
+         1. Find their mean,
+         2. substract it from all the numbers,
+         3. get their square root,
+         4. print the numbers that are larger than their square root
+         
+   3. use seq and rep to generate the following vectors:
+      (a) 1; 2; 3; 4; 1; 2; 3; 4; 1; 2; 3; 4; 1; 2; 3; 4;
+      (b) 10; 10; 10; 9; 9; 9; 8; 8; 8; 7; 7; 7;
+      (c) 1; 2; 2; 3; 3; 3; 4; 4; 4; 4; 5; 5; 5; 5; 5;
+      (d) 1; 1; 3; 3; 5; 5; 7; 7; 9; 9;
+
+   4. Create the following matrix, as simply as possible:
+
+>      3 1 1 1
+>      1 3 1 1
+>      1 1 3 1
+>      1 1 1 3
+      
+      
+   4a. multiply this matrix elementwise with itself. Get its matrix product by itself
+      
+   5. Solve the following system (have a look at solve)
+
+>      2x + 3y - z = 4
+>      5x - 10y + 2z = 0
+>      x + y - 4z = 5
+
+   6. create a list mylist with the following elements:
+   
+        + numbers 1 to 5. call it nb1
+        + numbers 1 to 50 by 0.375 steps. call it nb3
+        + the string "My mummy told me". call it char1
+        + A vector made of the strings "apples", "bananas", "pears". call it char2
+        + The boolean vector FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE . Call it bool 
+          
+   7. What's the list's length? calculate the mean of the first element; of the second; of the first and second
+   8. paste the third and fourth element of the list (use paste);
+      Which instruction would give  the sentence "My mummy told me: apples, bananas, pears"
+     (be careful, punctuation is important!)
+   9. Create a data frame with the data contained in file parus1.txt located at 
+   http://www2.unil.ch/popgen/teaching/R11
+  10. Create a vector data.fly containing the observations from alldat for which treat is mouche.
+      Add to data the element: "puce", 12.7300
+  11. Try loading the file alien.txt (from http://www2.unil.ch/popgen/teaching/R11).
+      What is wrong with this file?  Fix it.
+  12. Try loading the file class2005.xls
+      What needs to be done before you can load it into R?
+
+------
+
+\newpage
+
+
+# Practical 3:  Basic graphing functions, scatter plot and regression
+
+ 
+## Introduction
+
+### Plots
+
+We have already met some of the graphic functions in R (hist, boxplot...).
+We will now see the plot function in more details. 
+
+If you are not using **RStudio**,  before anything, you need to define a graphic windows. on windows, use `windows()`, on mac, use `quartz()`, on unix/linux, use `X11()`; 
+
+Plots can also be sent directly
+to specific files, without being printed on screen. available devices are
+`pdf()`, `postscript()`,`png()`,`jpeg()` among others. once you call such a device,
+you need to close it, by using the function `dev.off()`. pdf & postscript 
+can have multiple pages, but not the others. 
+
+
+
+For drawing any function, use plot:
+
+```{r}
+x<--10:10
+plot(x,sin(x))
+```
+What is the difference between the previous and the command `plot(sin(x))`
+
+
+The plot instruction contains numerous options (`?plot` for more).
+For instance, one can gives labels to the axes, a title, the printing color and symbols  etc..
+
+```{r}
+x<-seq(-10,10,0.01) #more on seq soon
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12),ylab="f(x)")
+x<-seq(0,4,0.1)
+plot(x,exp(-(x^3+2*x^2-3*x+1)),ylab="exp(f(x))")
+x<-seq(0,4,0.01)
+plot(x,exp(-(x^3+2*x^2-3*x+1)),ylab="exp(f(x))",col="red")
+```
+plot default is to use points. using the type option, we can specify whether we
+want points and lines (type="b") or a line (type="l") or nothing (type="n"):
+
+
+```{r}
+x<-seq(-10,10,0.01)
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12),type="b")
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12),type="l")
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12),type="n")
+```
+If you want to see the 2 graphs in one window, you can specify the numbers of panel
+to show, using the par function (see ?par):
+
+```{r}
+par(mfrow=c(1,2))
+x<-seq(-10,10,0.01)
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12))
+plot(x,(x^3+2*x^2-3*x+1)/(2*x^2+5*x-12),type="l")
+par(mfrow=c(1,1))#to go back to one panel
+```
+We can also add several functions to the same graph. After first using plot,
+which will define the first things to be printed and axes length, labels etc,
+you can use the functions lines, text or points:
+
+```{r}
+x<-seq(0,2,0.05)
+ymax<-10
+plot(x,x,ylim=c(0,ymax),ylab="f(x)")
+lines(x,x^0.5,col="blue")
+points(x,x^2,col="red")
+text(x,x^3,labels="3",col="green")
+text(x,x^3,labels="3",col="green")
+segments(0.25,4,1.25,8,col="purple",lwd=2)
+```
+
+Note that several call to plot will erase each other in turn.
+
+plot is of course useful for showing scatter plot of 2 variables,
+but could also be used for a single vector:
+
+```{r}
+a<-rnorm(100);
+plot(a)
+b<-which(abs(a)>1.96)
+#now create a vector specifying a red color for values
+#larger than 1.96
+coul<-rep("black",100);
+coul[b]<-"red"
+points(a,col=coul) #print these points in red
+lines(a,type="h",col=coul) #type="h" draws a vertical bar from the x axis
+```
+Other useful plots are histograms, barplots and piecharts (for categorical data):
+
+```{r}
+hist(a)
+categ<-rep(c("white","black","red"),c(20,20,40))
+#We first need to make a count of the number of each color, using table:
+tcateg<-table(categ)
+barplot(tcateg,col=c("black","red","white"))
+pie(tcateg,col=c("black","red","white"))
+```
+list of colors predefined in R : `colors()`
+
+For a tour of R graphics ability, type:
+
+```{r,eval=FALSE}
+demo(graphics)
+```
+
+### Variance, covariances, correlations
+
+Variance, covariance and correlations are obtained using `var`, `cov` and `cor` respectively.
+It is possible to use these functions to obtain the correlation between 2 vectors,
+or all variables (columns) of a data frame:
+
+```{r,eval=FALSE}
+cor(x,y);
+cor(d);
+```
+These functions don't like missing data.
+If you have such data, you need to specify how to remove them.
+You could either remove the whole line containing one missing observation,
+`(use="complete.obs")`, or eliminate them only when they turn up in a calculation
+`(use="pairwise.complete.obs")`. Compare the results of the following instructions:
+
+```{r}
+x<-c(1,2,3,4,NA); y<-c(1,2,3,4,-100); z<-c(4,3,2,1,10)
+d<-data.frame(x,y,z)
+cor(d, use="complete.obs")
+cor(d, use="pairwise.complete.obs")
+```
+these functions return one element only (a number or a matrix. More complex functions,
+for instance lsfit (`?lsfit`) or lm (`?lm`), return a list of elements. To access each element individually use \$.
+For instance:
+
+```{r,eval=FALSE}
+fit<-lsfit(x,y)
+fit$coef
+lm(y~x)$coef
+```
+To get the names of all the elements of an object, use `names()`.
+
+A word on lsfit.  It allows to estimate, using least square,
+ the slope and intercept
+of a a regression line $Y=a+X*b$  
+The intercept a is the value of $Y$ for which $X=0$.
+The slope expresses how many units will Y varies when $X$ changes one unit.  
+We'll see `lm` in more details later
+
+
+Also note that the package [ggplot](http://ggplot2.org/) :
+
+```{r,eval=FALSE}
+#if package not yet installed (see practical 7)
+install.packages(ggplot2)
+library(ggplot2) #?ggplot for help 
+```
+has yet many more options and capabilities. Also see http://ggplot2.org/ for details
+
+
+Last, 2 books specifically about R graphics:
+
+Murrell Paul (2006) R Graphics: http://www.stat.auckland.ac.nz/~paul/RGraphics/rgraphics.html
+
+Hadley Wicham (2009)  ggplot2:  http://ggplot2.org/book/
+
+***
+
+## Questions
+
+   1. Load the file http://www.unil.ch/popgen/teaching/R11/data_etudiants_biol_0506.txt
+     a. Rename columns with more meaningful names (e.g. sex, height, weight, shoesize etc...)
+     b. Produce a bar chart of the proportion of each sex and the proportion of the different
+       hair colors; produce a bar chart of the proportion of smoking men, non smoking men,
+       smoking women, non-smoking women (use barplot; hint: you might need to use the table function)
+     c. Produce a piechart of the  proportion of eye colors
+     d. Produce a boxplot of sizes as a function of sex
+     e. Plot the scatterplot of weigths  against height , using the sex
+   of individuals as label, and labelling your axes. Use a different color for each sex.
+   Explore the different arguments of the plot function: add a title, play with the
+   size of characters.  Try adding the regression line for males and that of females to the graph, using different colors for each
+   sex.   From this graph, would you say that the relation between weight and size differ between the two sexes? Which statistical test would be appropriate to test this hypothesis?
+     f. Produce a box plot of weight as a function of the smoking status and sex 
+     g.  Produce a two panels graph (a panel for males and the other for females)
+   of the scatterplot of weight versus height. Differentiate smokers from non smokers using a color argument
+     h. If you have the time and envy, explore the package `ggplot2` and find the commands necessary to produce the previous plots with it. 
+   2. What is the correlation between weight and size in men? women? And the covariance?
+   3. load the file 
+   http://www.unil.ch/popgen/teaching/R11/scatt.txt
+   in a four panels windows (2 times 2) draw the scatterplot of $y_1$,$y_2$,$y_3$ and $y_4$
+   as a function of $x$. what relation between the ys and x do they show?
+   What is the correlation between $x$ and $y_1$, $y_2$, $y_3$ and $y_4$?
+   4. Use abline to add a line that best predict the different ys as a function
+   of $x$ (you'll have to redraw the preceding graphs). Use the `lsfit` or the `lm` function , and its element coeff to obtain the least square/linear model  best fit. 
+   5. what are the 10th and 90th percentile of $y_5$?  plot the scatter diagram of
+   $y_5$ versus $x$.  What type of relation exists between the 2? use `lsfit` and
+   `abline` to produce the best linear fit line. 
+   6. Store the predicted value of $y_5$ in a vector `y5.pred`.
+   what are the residuals of the regression of $y_5$ on $x$? store this in `y5.res`
+   7. plot the residuals as a function of x, and comment the graph.
+   8. do questions 6 & 7 for variable $y_4$.   Is showing residuals as a function of x useful? Why?
+
+----
+
+\newpage
+
+# Practical 4: Functions in R   
+
+## Introduction
+
+R has by default several builtin functions (`mean, var, cor, plot, lm`, ...).
+And several more can be downloaded from http://www.r-project.org as packages.
+But you might (will) need to write your own functions to carry out a repetitive task.
+The basic concepts are very similar to those you ve learned for any other programming
+languages, such as c++, java or fortran. This practical should give a first brief
+feel of function writing in R. 
+
+
+### General structure of a function:
+
+```{r,eval=FALSE}
+    my.function<-function(x,y){
+    instruction 1
+    instruction 2
+    .
+    .
+    .
+    instruction n
+    }
+```
+Once it has been typed in, it is used as `my.function(a,b)`
+
+where a and b are the two arguments to pass to the function. 
+An example will clarify things:
+
+```{r}
+    my.mean<-function(a){
+      #this function will calculate the mean of a
+    return(sum(a)/length(a))
+    }
+#
+my.mean(1:10)
+#    
+    my.var<-function(a){
+    n<-length(a)
+    m<-sum(a)/n
+    va<-sum((a-m)^2)/n
+    return(va)
+    }
+#
+    my.var(1:10)
+```    
+
+In this function, the return(va) on the last line allows returning va
+(try writing this function without the return statement). You will notice that
+this last function does not give the same results as the builtin var function.
+Why?  Looking at the help for var will give it away: the builtin var produces
+an unbiased variance, that is, the divider is (n-1) rather than n.
+We could rewrite our function as:
+
+```{r}
+    my.var.ub<-function(a){
+    n<-length(a)
+    m<-sum(a)/n
+    va<-sum((a-m)^2)/n
+    va<-n/(n-1)*va
+    return(va)
+    }
+#
+    my.var.ubb<-function(a){
+    n<-length(a)
+    va<-my.var(a)*n/(n-1)
+    return(va)
+    }
+``` 
+
+Ideally, our function should let us choose whether we want the variance 
+with or without bias. We can use an if instruction in the body of the 
+function to tell it what to return:
+
+
+```{r}
+  my.var.n<-function(a,bias=TRUE){
+    n<-length(a)
+    m<-sum(a)/n
+    va<-sum((a-m)^2)/n 
+    if (!bias) {
+    va<-va*n/(n-1)
+    }
+    return(va)
+    }
+#    
+    my.var.n(1:10)
+    my.var.n(1:10,bias=FALSE)
+    var(1:10)
+```
+
+In this function, bias is a boolean.  By default, the biased variance is calculated,
+then the if statement is evaluated, and the unbiased variance is calculated if
+bias is false (! stands for negation). If we want the biased variance, we don t
+need to tell it to R, the default for bias is FALSE.    
+
+### Control structures 
+
+The control structures for R are:
+
+~~~
+    if (cond) expr      (If cond is true, do expr)
+
+    if (cond) expr1 else expr2 (if cond is TRUE, do expr1 else do expr2)
+
+    if (cond) {cons.expr1; cons.expr2} else {alt.expr1; alt.expr2} (same as before
+    but with several expression for each situation. Note the curly brakets 
+    around the expressions)
+
+    for(i in seq) expr (do expr as many times as there are element in seq. 
+~~~
+
+```{r}
+    x<-1:10
+    for (i in 1:10) x[i]<-i+1 #2:11
+```
+    while(cond) expr (do expr as long as cond is true)
+
+    repeat { expr; if (cond) break } (do expr as long as cond is FALSE, therefore as
+    long as we do not enter in the if statement. Beware, break is a necessity
+    if you dont want to go in an infinite loop)
+
+To print the square of the 20 first integers, we could write:
+
+```{r}
+   for (i in 1:20) {
+    cat(i,i^2,"\n")
+    }
+#for details on cat, ?cat. "\n" is the "return" character.
+```
+
+To print sequentially the sum of the first 10 integers:
+
+```{r}
+    i<-0;j<-0;
+    repeat{
+    i<-i+1; j<-j+i;
+    cat(i,j,"\n");
+    if (i>=10) {
+    break}
+    }
+#
+i<-0;j<-0;
+while(i<10){
+i<-i+1;j<-j+i;cat(i,j,"\n");
+}
+```
+
+Compare the result with `cumsum(1:10)`.
+
+Note: the ; allows to put several expressions on the same line. 
+
+
+More information on writing functions can be found in several online tutorials:
+
+http://cran.r-project.org/doc/manuals/R-intro.html#Writing-your-own-functions
+
+http://zoonek2.free.fr/UNIX/48_R/02.html
+
+http://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
+
+***
+## Questions
+
+   1. Obtain the mean, median, variance and mad of the following observations:
+   50; 60; 10; 20; 10; 40; 30; 800; 30; 40; 10
+   2. Redo the calculations without the outlier. Conclusions?
+   3. Redo these calculations without using the R builtin functions
+   [Reminder: the median is the value of the data that split them in 2 equal parts.
+   If the number of data points is odd, the median is the value of the (nth+1)/2 largest datum,
+   and it s the mean between the (nth/2 and (nth/2+1) if the number of data points
+   is even; and MAD=med(abs(x(i)-med(x))]
+
+   4. Load the file class05.xls from http://www.unil.ch/popgen/teaching/R11/class2005.xls .How many non smoking students in this data set? how many different hair color?
+   5. Draw a histogram of sizes. Are the different size classes equifrequent?
+   
+   6. Plot the empirical cumulative distribution of sizes (use plot and sort).
+   Using this plot, estimate the 30th and 70th percentile of the distribution of
+   sizes.
+   7. use histogram and qqnorm (?qqnorm) and qqline to check whether sizes are 
+   normally distributed. Which is better?  How would you test for normality?
+   8. Use quantile to validate your approximation for question 6
+   9. What's the mean weight? estimate it in kg then in gr (you don't need to use R to estimate it in gr).
+   10. What's the weight variance in kg^2? in gr^2? (you don't need to use R to estimate it in gr^2)   
+   11. rescale the variable weight so that it has mean 0 and sd 1. Why is this transformation useful?
+       what is the 2.5th and 97.5th percentile of the rescaled weight?
+
+***
+\newpage
+
+# Practical 5:Statistical distributions and functions in R
+ 
+## Introduction 
+
+R has built in functions to calculate probability densities, cumulative distribution,
+inverse of cumulative (quantile) for several standard probability distributions.
+Furthermore, R can generate random values from  these distributions.
+There are 4 functions for each distribution, starting with the following letters:
+
+~~~
+   1. d: for density, for instance 'dnorm' for the probability density of the normal distribution
+   2. p: for probability, e.g. 'pnorm';
+   3. q: for quantile, e.g 'qnorm';
+   4. r: for random, e.g. 'rnorm'; 
+~~~
+
+The classical distributions are:
+
+  - normal  (see ?pnorm ): central for all stats. take mean and variance as parameters.
+  - binomial (?pbinom): takes 2 parameters, n the number of trials and p, the probability of a success.
+  - poisson (?ppois): determined by a single parameter lambda.
+  - geometric (?pgeom) 
+  - uniform (?punif)
+  - chisquare (?pchisq)
+  - F (?pf)
+  - t  (?pt)
+    ...
+    
+These are the most common, but several others are also available:
+
+`?Distributions`
+
+and even more here:
+
+http://cran.r-project.org/web/views/Distributions.html
+
+Lets take 1000 random numbers from a normal with mean 0 and sd 1 (default parameters):
+
+```{r}
+a<-rnorm(1000)
+```
+
+and plot a histogram of this vector:
+
+```{r}
+hist(a)
+qqnorm(a);qqline(a) #best way to verify normality!
+```
+
+do the same but with mean 4 and sd 5:
+
+```{r}
+b<-rnorm(1000, mean=4, sd=5)
+hist(b)
+qqnorm(b);qqline(b)
+```
+
+`pnorm` gives the probability that a normal deviate is less than a given number X,
+for instance -1.96:
+
+```{r}
+pnorm(-1.96)
+pnorm(1.96) #why?
+```
+
+if a random variable follows a normal, then it has 2.5% chance to be
+smaller than -1.96 (and since this distribution is symmetrical, it also has
+a 2.5% chance of being larger than 1.96)
+
+With `qnorm`, you do the reverse: what is the value of the normal deviate for
+which I have a 2.5% chance of finding a lower deviate: 
+
+```{r} 
+qnorm(0.025)
+``` 
+
+Now try:
+
+```{r}
+mean(a)
+sd(a)
+b<-rnorm(1000,20,2)
+mean(b)
+sd(b)
+```
+
+ 
+some examples with other distributions:
+
+```{r}
+rbinom(30,50,0.5) #30 random deviates from a binomial with n=50 and p=0.5
+rpois(30,2.4) # 30 random deviates from a Poisson with lambda=2.4
+dpois(0,2.4) # Probability to observe 0 if the underlying distribution is a poisson with param 2.4
+plot(0:10,dpois(0:10,2.4),type="h")
+```
+
+A particularly interesting distribution is that of p-values and the null hypothesis.  It can be shown that it should follow a uniform distribution.  Now with big data available everywhere, we are often confronted with a very large number of p-values.  And, by chance, some will be below the classical 5% threshold. How to decide which p-values are really outliers?  
+
+```{r}
+pval<-runif(100000)
+hist(pval,breaks=seq(0,1,0.05))
+```
+
+out of `r length(pval)` p-values, `r sum(pval<=0.05)` are significant at the 5% level. Is there something to worry about?
+
+```{r}
+n<-length(pval)
+par(mfrow=c(1,2))
+plot((1:n)/n,sort(pval),xlab="theo. perc.",ylab="obs. perc.");abline(c(0,1))
+plot(-log10((n:1)/n),sort(-log10(pval)),xlab="theo perc. (-log10)",ylab="obs. perc.(-log10)");abline(c(0,1))
+```
+
+now imagine that 5 of the p-values are really, really small, less than $10^{-6}$ say:
+
+```{r}
+pval[1:5]<-runif(5)/1000000
+par(mfrow=c(1,2))
+plot((1:n)/n,sort(pval),xlab="theo. perc.",ylab="obs. perc");abline(c(0,1))
+plot(-log10((n:1)/n),sort(-log10(pval)),xlab="theo perc. (-log10)",ylab="obs. perc. (-log10)");abline(c(0,1))
+```
+
+The outlying values appear now clearly on the -log10 (right) panel, not on the untransformed panel. These type of plots are now commonly used to identify p-values that are outliers.
+
+
+
+
+Another useful function, connected to the binomial distribution, is the function `sample`.
+It allows sampling with or without replacement from a vector (see `?sample`). This
+function is at the heart of randomization and bootstrap tests
+
+```{r}
+sample(1:10,replace=FALSE) #permutations of the elements
+sample(0:99,size=200,replace=TRUE) #200 random draws of numbers between 0 & 99
+sample(1:0,size=1000,replace=TRUE,prob=c(0.2,0.8)) 
+#same as 
+rbinom(1000,size=1,p=0.2)
+```
+
+***
+## Questions
+
+ 
+   1. generate 254 random numbers drawn from a uniform between 0 and 1000. Draw
+   a histogram of these numbers. Does it look familiar? Go back to the lotery
+   data set, and now think of a graphical way of verifying uniformity in the winning numbers
+   (hint: have a look at qqplot).  Can you think of a way for testing this?
+
+   2. Imagine that the size of the male population in Switzerland follows a
+      normal with mean 1.72m and sd 0.3m.
+      a. What is the probability that an individual from this population is 1.60 m or less?          
+      b. 1.80 m or less?
+      c. 1.90 m or more?
+      d. 2.00 m or more?
+      e. What proportion of the male population should be between 1.5 and 1.80 meters tall? 
+
+   3. The greater white tooth shrew, Crocidura russula,
+     is a small anthropophilic insectivore leaving around here, and is studied by
+     research groups in Lausanne. The population size is stable, meaning that the mean
+     number of surviving offspring per female is 2.
+     Suppose that the number of surviving offspring follows a Poisson distribution.
+     What is the probability that a female has no surviving offspring?
+     one surviving offspring?  4 or more? (beware, there is a small trap here).
+
+   4. In several species, the probability p of dying is independant of age.
+   The distribution of mortality ages follows a geometric distribution
+   $P(X=x)=p(1-p)^x$. We are interested in a population where the probability
+   of dying during a year is 0.15. You can use the geom (e.g pgeom, rgeom, dgeom, qgeom)
+   function to answer the following:
+      a. In this population, what is the probability of dying at 20?
+      b. What is the probability of dying before 2?
+      c. What is the probability of attaining 30?
+      d. What is the mean age?    (hint: think about expected value)
+      e. What is the variance of age? 
+
+*The following exercice is a good way of demonstrating the central limit theorem* 
+
+   5. Imagine that we are rolling a dice.  Using the function sample,
+   generate 1000 dice rolls and store them in a vector x1. How are these
+   data distributed?
+   
+   Now, roll two dices simultaneously a 1000 times, and store the sum
+   of the 2 displayed numbers in a vector x2. How are these data distributed?
+   Do the same for 5 dices (in vector x5) and 20 dices (in vector x20).  Plot
+   on the same figure the normal quantile quantile plots (qqnorm) obtained
+   from these 4 experiments.  Conclusions?
+   
+   [optional] You can do the same for other distributions, for instance,
+   the geometric distribution we ve seen in the previous paragraph
+
+*The following two exercices will show you how to use R to do simulations. To solve them, start by thinking about what type of information you'd like the function to produce, and then think about ways of generating it. You'll have to create vectors or matrices and use loops*
+        
+   6. Write a function that simulates the evolution of the size of a finite
+   hermaphroditic population with non overlapping generations under demographic stochasticity.  We will suppose that fertility follows a poisson distribution. This function should take as arguments the
+   initial population size, the fertility, the number of generations
+   over which you want to follow population size, and the possibility of plotting
+   the graph of the census size as a function of generation. It should output
+   the population sizes throught time at the end.
+
+   7. Write a function drift that simulates the effect of random genetic drift.
+   It should take as parameter the population size (fixed), the number of generations,
+   the initial allele frequency, a number of replicates.  It should produce at the end
+   a graph of the changes throught time of allele frequencies in the different replicates.
+
+***
+
+\newpage
+
+# Practical 6:TESTS in R
+
+## Introduction
+
+R has builtin functions for carrying out your typical statistical tests. We will 
+go through them in this practical. 
+
+we'll use the following data set to illustrate some of these functions:
+
+```{r}
+dat<-read.table("http://www.unil.ch/popgen/teaching/R11/class2005.txt",header=TRUE)
+```
+***
+### Categorical data
+
+
+Chisquare tests:
+
+`chisq.test` performs chi-squared contingency table tests AND
+goodness-of-fit tests.
+
+Usage:
+```{r,eval=FALSE}
+     chisq.test(x, y = NULL, correct = TRUE,
+                p = rep(1/length(x), length(x)), rescale.p = FALSE,
+                simulate.p.value = FALSE, B = 2000)
+```
+
+Note: if you have 2 vectors, each containing the state of the observations 
+(for instance, eye and hair colours), you can obtain the contingency tables 
+using the `table` function (`?table`).  Another useful function is `xtabs
+
+
+`fisher.test` performs Fisher's Exact Test for Count Data.  Performs Fisher's exact test for testing the null of independence of rows and columns in a contingency table with fixed marginals.
+
+```{r,eval=FALSE}
+     fisher.test(x, y = NULL, workspace = 200000, hybrid = FALSE,
+                 control = list(), or = 1, alternative = "two.sided",
+                 conf.int = TRUE, conf.level = 0.95,
+                 simulate.p.value = FALSE, B = 2000)
+```
+
+***
+### Comparing distributions
+
+For comparing two empirical distributions, or an empirical distribution 
+to a theoretical one
+
+kolmogorov smirnov tests:
+
+```{r,eval=FALSE}
+     ks.test(x, y, ..., alternative = c("two.sided", "less", "greater"),
+             exact = NULL)
+```             
+
+shapiro.test : for testing normality
+
+
+***
+### Comparing two samples
+
+```{r,eval=FALSE}
+t.test(x, y = NULL,
+       alternative = c("two.sided", "less", "greater"),
+       mu = 0, paired = FALSE, var.equal = FALSE,
+       conf.level = 0.95, ...)
+t.test(x,mu=0)
+t.test(x,y)
+t.test(x,y,paired=T)
+```
+
+examples:
+
+```{r}  
+  x<-rnorm(30)
+  y<-rnorm(30,mean=0.6)
+  t.test(x)
+  t.test(y)
+  t.test(x,y)
+```
+
+Wilcoxon tests:  (non parametric equivalent of t-tests)
+
+```{r,eval=FALSE}
+wilcox.test(x,y)
+wilcox.test(x,y,paired=T)
+```
+
+***
+### simple bootstrap percentile confidence intervals:
+
+several functions in package boot. But simple to program
+
+for instance, for a confidence interval of the mean:
+
+```{r}
+bootstrap<-function(x,perc=c(0.025,0.975),nboot=1000){
+bm<-vector(length=nboot) #vector where bootstrap samples are stored
+n<-length(x)
+for (ib in 1:nboot){
+dum<-sample(n,replace=T)  #sampling with replacement of the observed vector
+bm[ib]<-mean(x[dum],na.rm=T)  #bootstrap sample i of the mean
+}
+return(list(ci=quantile(bm,probs=perc),bm=bm))
+}
+#example
+x<-runif(1000,min=500,max=1000)
+bx<-bootstrap(x);
+bx$ci;
+par(mfrow=c(1,2))
+hist(x)
+hist(bx$bm)
+```
+
+***
+### One way ANOVA:
+
+```{r,eval=FALSE}
+oneway.test(y~A,var.equal=TRUE)
+aov(y~A)
+```
+
+testing homogeneity of variance:  
+
+```{r,eval=FALSE}
+bartlett.test  #strongly depends on the normality assumption
+```
+
+Levene test: less sensitive to normality assumption, hence preferred, but  has to be programmed.
+Simple idea:  if variance are heterogeneous, then this should show 
+if one does an anova on the absolute values of the residuals:
+
+```{r}
+set.seed(12)    #to make sure that you obtain the same results as me
+y1<-rnorm(30,mean=2,sd=2)
+y2<-rnorm(30,mean=4,sd=10)
+y3<-rnorm(30,mean=6,sd=2)
+y<-c(y1,y2,y3)
+a<-factor(rep(1:3,each=30))  #factor will be further explained below
+par(mfrow=c(2,2))
+boxplot(y~a)
+res<-unlist(tapply(y,a,fun<-function(x) x-mean(x))) #tapply very useful, as is apply and lapply
+#unlist is for transforming a list in a vector (providing elements of the list
+#are of ths same type)
+boxplot(res~a)
+boxplot(abs(res)~a) #see the difference in mean/median among the groups ?
+summary(aov(abs(res)~a))
+```
+The car library has a function for this, `leveneTest` (`?leveneTest`)
+
+***
+### Permutation tests (distribution free ANOVA)
+
+```{r}
+anova.perm<-function(y,x,nperm=100,var.equal=TRUE)
+{
+obs.f<-oneway.test(y~x,var.equal=var.equal)$statistic
+bf<-numeric(length=nperm)
+bf[nperm]<-obs.f
+for (i in 1:(nperm-1)){
+bf[i]<-oneway.test(y~sample(x),var.equal=var.equal)$statistic
+}
+return(list(p.val=sum(bf>=bf[nperm])/nperm,bf=bf))
+}
+#example
+y<-rnorm(100)
+x<-factor(rep(1:4,each=25))
+oneway.test(y~x,var.equal=TRUE)
+res1<-anova.perm(y,x)
+res1$p.val
+```
+
+***
+Non parametric equivalent to one way anova: Kruskal Wallis test:
+
+```{r,eval=FALSE}
+kruskal.test(y~A)
+kruskal.test(list)
+kruskal.test(y,A)
+```
+
+***
+### Correlation
+
+~~~
+cor.test
+     Test for association between paired samples, using one of
+     Pearsons product moment correlation coefficient, Kendalls tau or
+     Spearman s rho.
+
+Usage:
+
+     cor.test(x, ...)
+
+     ## Default S3 method:
+     cor.test(x, y,
+              alternative = c("two.sided", "less", "greater"),
+              method = c("pearson", "kendall", "spearman"),
+              exact = NULL, conf.level = 0.95, ...)
+~~~
+
+pearson is classical correlation, spearman is the correlation on obs ranks
+```{r}
+x<-rnorm(100)
+y<-rnorm(100)+x
+cor(x,y) #pearson
+cor.test(x,y)
+cor(x,y,method="spearman") #same as 
+cor(rank(x),rank(y))
+cor.test(x,y,method="spearman")
+#kendall is more complicated, it's the difference in concordant vs discordant pairs of obs
+```
+
+
+***
+### Formulae in R
+
+The operator ~ is used to define a model formula in R.
+
+It means: explain what's on the left of ~ by what's on the right of ~
+
+Suppose y, x, x0, x1, x2, ... are numeric variables, X is a matrix and A, B, C, 
+... are factors (?factor). 
+The following formulae on the left side below specify 
+statistical models as described on the right.
+
+~~~
+y ~ x
+y ~ 1 + x
+    Both imply the same simple linear regression model of y on x. The first has 
+    an implicit intercept term, and the second an explicit one.
+    
+y ~ 0 + x
+y ~ -1 + x
+y ~ x - 1
+    Simple linear regression of y on x through the origin (that is, without an 
+    intercept term).
+log(y) ~ x1 + x2
+    Multiple regression of the transformed variable, log(y), on x1 and x2 
+    (with an implicit intercept term).
+y ~ 1 + x + I(x^2)
+    Polynomial regression of y on x of degree 2. 
+y ~ A
+    Single classification analysis of variance model of y, with classes 
+    determined by A.
+y ~ A + x
+    Single classification analysis of covariance model of y, with classes 
+    determined by A, and with covariate x.
+y ~ A*B
+y ~ A + B + A:B
+y ~ A+ B %in% A
+y ~ A/B
+    Two factor non-additive model of y on A and B. The first two specify 
+    the same crossed classification and the second three specify the same 
+    nested classification. 
+y ~ (A + B + C)^2
+y ~ A*B*C - A:B:C
+    Three factor experiment but with a model containing main effects and 
+    two factor interactions only. Both formulae specify the same model.
+y ~ A * x
+y ~ A/x
+y ~ A/(1 + x) - 1
+    Separate simple linear regression models of y on x within the levels of A, 
+    with different codings. The last form produces explicit estimates of as 
+    many different intercepts and slopes as there are levels in A.
+y ~ A*B + Error(C)
+    An experiment with two treatment factors, A and B, and error strata 
+    determined by factor C. For example a split plot experiment, with whole 
+    plots (and hence also subplots), determined by factor C. 
+    
+cbind(y1,y2,y3) ~ A  
+
+     formula for MANOVA    
+~~~
+***
+
+### Linear models (Regression, multiple regressions, ANOVAs, ANCOVAs)
+
+The basic function for fitting ordinary multiple models is lm(), and a 
+streamlined version of the call is as follows:
+
+      fitted.model <- lm(formula, data = data.frame)
+
+For instance
+
+```{r,eval=FALSE}
+fm2 <- lm(y ~ x1 + x2, data = dat) 
+```
+would fit a multiple regression model of y on x1 and x2 (with implicit intercept term).
+
+careful, sequential fit
+if x1 & x2 correlated, lm(y~x1+x2) !=lm(y~x2+x1)
+
+
+```{r}
+  x1<-rnorm(100,mean=10,sd=2)
+  x2<-rnorm(100,mean=5,sd=3)
+  y<-8*x1+rnorm(100,sd=5)
+  dat<-data.frame(y=y,x1=x1,x2=x2)
+  fm2 <- lm(y ~ x1 + x2, data = dat)
+  summary(fm2)
+  anova(fm2)      
+
+  fm1<-lm(y~x1,data=dat)
+  anova(fm2,fm1)
+
+  par(mfrow=c(2,2)) #diagnostic plots, essential to check
+  plot(fm1)
+  par(mfrow=c(1,1))
+#note: order of variables matters for prop of variance explained (anova)!
+  fm2b <- lm(y ~ x2 + x1, data = dat)
+  anova(fm2)
+  anova(fm2b)
+```  
+  
+
+Generic functions for extracting model information
+
+The value of lm() is a fitted model object; technically a list of results of class "lm". 
+Information about the fitted model can then be displayed, extracted, plotted and 
+so on by using generic functions that orient themselves to objects of class "lm". 
+These include
+
+     add1    deviance   formula      predict  step
+     alias   drop1      kappa        print    summary
+     anova   effects    labels       proj     vcov
+     coef    family     plot         residuals
+
+A brief description of the most commonly used ones is given below.
+
+~~~
+anova(object_1, object_2)
+    Compare a submodel with an outer model and produce an analysis of variance table.
+
+
+
+summary(object)
+    Print a comprehensive summary of the results of the regression analysis.
+
+coef(object)
+    Extract the regression coefficient (matrix).
+
+    Long form: coefficients(object).
+
+
+plot(object)
+    Produce four plots, showing residuals, fitted values and some diagnostics.
+
+
+predict(object, newdata=data.frame)
+    The data frame supplied must have variables specified with the same labels as 
+    the original. The value is a vector or matrix of predicted values corresponding 
+    to the determining variable values in data.frame.
+
+
+residuals(object)
+    Extract the (matrix of) residuals, weighted as appropriate.
+
+    Short form: resid(object).
+
+
+step(object)
+    Select a suitable model by adding or dropping terms and preserving hierarchies. 
+    The model with the largest value of AIC (Akaike s An Information Criterion) 
+    discovered in the stepwise search is returned.
+~~~
+***
+### Generalized linear models:
+
+glm(formula, family=gaussian)
+
+     family can be one of:
+     binomial(link = "logit")
+     gaussian(link = "identity")
+     Gamma(link = "inverse")
+     inverse.gaussian(link = "1/mu^2")
+     poisson(link = "log")
+     quasi(link = "identity", variance = "constant")
+     quasibinomial(link = "logit")
+     quasipoisson(link = "log")
+
+***
+### Mixed models (with a mixture of fixed and random effects), 
+use package lme4:
+
+```{r,eval=FALSE}
+library(lme4)
+?lmer
+```
+
+***
+### Multivariate tests:
+
+`manova(cbind(y1,y2,y3)~A))`
+
+`prcomp()` for PCA, but better to use package ade4:
+
+```{r,eval=FALSE}
+library(ade4)
+?dudi.pca
+```
+
+***
+
+## Questions
+
+Answer these questions using the file class2005.txt at URL:
+
+http://www2.unil.ch/popgen/teaching/R11/
+
+
+  1. average size of the class? for males? for females?
+  2. are the size normally distributed?
+  3. confidence interval for the average size
+  4. correlation between weight and size?
+  5. can one predict the size of somebody based on his shoe size?
+  6. Are eye and hair colors independant?
+  7. Are smokers heavier than non-smokers?
+  8. does answer to 7 depend on sex?
+  9. Does size differ according to hair colour? 
+  10. Does the weight of boys and girls differ? does this depends on their respective size?
+  11. Does the smoking status depends on sex?
+
+***
+# Practical 7: Packages
+
+Part of the strenght of **R** is its almost infinite number of packages available to enhance it.  However, this flurry has grown without much order, and it is often difficult to find what one is looking for. A notable exception is the *bioconductor* suite of packages (http://www.bioconductor.org), which 
+
+> provides tools for the analysis and comprehension of high-throughput genomic data.
+
+
+Other specific areas have been loosely organized in task views, a list of which can be found at http://cran.r-project.org/web/views/
+
+
+To install a package, use `install.packages()`. For instance to install `ape`, type
+
+```{r,eval=FALSE}
+install.packages(ape)
+```
+
+You might find it useful to install the packages in a specific place rather than the default, either because you are working on a machine where you don't have administrator rights, or because you don't want to have to update everything each time you install a new version of **R**. One way is to create a .Renviron file in your home directory, where you specify `R_LIBS=/your_path_to_Rlibs` 
+
+To load a package, use `library(package)`, e.g.:
+
+```{r,eval=FALSE}
+library(ape)
+?plot.phylo
+example(plot.phylo)
+```
+
